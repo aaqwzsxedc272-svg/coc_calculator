@@ -16,14 +16,15 @@ A single-page planner for Clash of Clans hero / guardian / pet upgrades. Open
   is right even if you close the tab and come back.
   * heroes and guardians use your builder count (5 / 6 / instant),
   * pets run one at a time in the Pet House, without a builder,
-  * a guardian needs Town Hall 18, pets need the Pet House (TH14+) — those are
-    the only Town Hall gates enforced.
+  * no Town Hall / Hero Hall / Pet House level checks (they were removed on
+    request — set the fields you own and the planner trusts you).
 * **5-minute warning** — a toast, a beep and (if you allow it) a desktop
   notification 5 minutes before an upgrade ends.
-* **Your resources** — enter your Gold / Elixir / Dark Elixir / Gems and the app
-  charges what you start, then shows *what is still needed*, *what you have* and
-  *what is missing* per resource, plus one-after-another and all-at-once finish
-  dates.
+* **Level calculator** — pick any hero / guardian / pet and a level range
+  (e.g. 1 → 100). It totals the cost and the upgrade time for the whole range,
+  shows how many upgrades that is, and the first/last step price.
+* **Totals for what you ticked** — Gold / Elixir / Dark Elixir to spend, time
+  one-after-another, time all-at-once, and the date everything is ready.
 * **Demo fast-forward** (×60 / ×3600) so you can watch a countdown, the 5-minute
   warning and the completion without waiting days. It only affects timers you
   started, and it pauses on the 5-minute mark so the warning is never skipped.
@@ -40,6 +41,8 @@ saved in `localStorage` under `coc-upgrade-calc-v4`; **Reset** clears it.
 ## Data & caveats
 
 * Costs/times are the base values (no Gold Pass, Books, Hammers or potions).
+* The calculator starts from the level you set on the card when you pick that
+  character, so “From” matches what you actually own.
 * Guardians (Smasher, Longshot, Logger) share one cost/time table.
 * Diggy is listed to level 10 only — the higher levels weren’t verifiable.
 * Sources: cocwarbase.com (heroes), Clash of Clans Wiki, cocmap.com and

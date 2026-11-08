@@ -89,12 +89,22 @@ h2 .cnt{font:600 .75rem/1 var(--font-body);letter-spacing:0;text-transform:none;
 .sw-line small{font-weight:400;color:var(--mute);margin-left:auto;text-align:right;font-size:.78rem}
 .mini{font-size:.78rem;color:var(--mute);margin:0 2px}
 /* resources */
-.ress{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.res-in{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-width:0}
-.res-in svg{width:20px;height:20px;flex:none}
-.res-in label{display:block;font-size:.68rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mute)}
-.res-in input{width:100%;min-width:0;border:0;background:transparent;font-weight:600;font-variant-numeric:tabular-nums;padding:0;-moz-appearance:textfield;appearance:textfield}
-.res-in input::-webkit-outer-spin-button,.res-in input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+/* level calculator */
+.calc{background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px;display:flex;flex-direction:column;gap:7px}
+.calc-h{font:700 .72rem/1 var(--font-body);letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+.calc select{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:var(--panel);font-weight:600;font-size:.88rem}
+.calc-row{display:flex;align-items:flex-end;gap:6px}
+.calc-in{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.calc-in span{font-size:.66rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mute)}
+.calc-in input{width:100%;min-width:0;padding:5px 7px;border:1px solid var(--line);border-radius:6px;background:var(--panel);font-weight:600;font-variant-numeric:tabular-nums;text-align:center;-moz-appearance:textfield;appearance:textfield}
+.calc-in input::-webkit-outer-spin-button,.calc-in input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.calc-sep{color:var(--mute);font-weight:700;padding-bottom:6px}
+.calc-out{display:flex;flex-direction:column;gap:2px;font-size:.84rem}
+.calc-out .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.calc-out .row span{color:var(--mute)}
+.calc-out .row b{font-variant-numeric:tabular-nums;text-align:right}
+.calc-out .big b{font:700 1.05rem/1.2 var(--font-display);letter-spacing:.01em}
+.calc-out .bad{color:var(--bad);font-weight:600;font-size:.8rem}
 .tabs{display:flex;gap:6px}
 .tabs button{flex:1;padding:6px 8px;font-size:.8rem;font-weight:600;background:var(--bg);border:1px solid var(--line);border-radius:7px;cursor:pointer;color:var(--mute)}
 .tabs button[aria-pressed="true"]{background:var(--accent-bg);border-color:var(--accent);color:var(--ink)}
@@ -154,7 +164,7 @@ h2 .cnt{font:600 .75rem/1 var(--font-body);letter-spacing:0;text-transform:none;
   <div class="head">
     <div>
       <h1>Heroes, guardians &amp; pets — plan, start, count down</h1>
-      <p class="sub">Tick what you want to upgrade, set the level you have and your Town Hall, then press <b>Start</b> (▸) on an item. The app runs the real build timers in the background, keeps counting after you close the tab, and warns you 5 minutes before anything finishes.</p>
+      <p class="sub">Tick what you want to upgrade, set the level you have, then press <b>Start</b> (▸) on an item. The app runs the real build timers in the background, keeps counting after you close the tab, and warns you 5 minutes before anything finishes. The <b>level calculator</b> on the right totals any level range for you.</p>
     </div>
     <button id="rs" type="button">Reset</button>
   </div>
@@ -163,9 +173,9 @@ h2 .cnt{font:600 .75rem/1 var(--font-body);letter-spacing:0;text-transform:none;
   <section><h2>Pets <span class="cnt" id="c-Pets"></span></h2><div class="grid" id="g-Pets"></div></section>
   <p class="note">
     Real game art is used for the icons (all rights belong to Supercell). Costs and times are the base values: no Gold Pass,
-    Books, Hammers or potions, and Hero Hall / Pet House levels aren’t checked. Heroes and guardians share the same builder
-    count (set it on the right); pets upgrade in the Pet House, one at a time, without a builder, and the queue starts from
-    now (it isn’t retroactive). Hammer Jam runs Nov&nbsp;1 08:00 → Nov&nbsp;16 08:00 UTC 2026 and upgrades <em>started</em>
+    Books, Hammers or potions, and no Town Hall / Hero Hall / Pet House level checks. Heroes and guardians share the same
+    builder count (set it on the right); pets upgrade in the Pet House, one at a time, without a builder, and the queue starts
+    from now (it isn’t retroactive). Hammer Jam runs Nov&nbsp;1 08:00 → Nov&nbsp;16 08:00 UTC 2026 and upgrades <em>started</em>
     during it keep the shorter time; the 50% also applies to guardians and pets. Guardians (Smasher, Longshot, Logger) share
     one cost/time table. Diggy is listed to level 10 only. Data: cocwarbase.com (heroes), Clash of Clans Wiki, cocmap.com and
     coclayout.com (guardians and pets), checked Nov 7, 2026.
@@ -182,28 +192,15 @@ h2 .cnt{font:600 .75rem/1 var(--font-body);letter-spacing:0;text-transform:none;
       <span class="sw"></span><span>5-minute warning</span><small id="at">Notifications</small>
     </div>
 
-    <div class="ress">
-      <div class="res-in">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#d33"/><path d="M7 12h10" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
-        <div style="min-width:0;flex:1"><label for="r-Gold">Gold</label><input id="r-Gold" type="text" inputmode="numeric" autocomplete="off" value=""></div>
+    <div class="calc">
+      <div class="calc-h">Level calculator</div>
+      <select id="calc-who" aria-label="Character"></select>
+      <div class="calc-row">
+        <label class="calc-in"><span>From</span><input id="calc-from" type="number" inputmode="numeric" min="1" step="1" value="1"></label>
+        <span class="calc-sep" aria-hidden="true">→</span>
+        <label class="calc-in"><span>To</span><input id="calc-to" type="number" inputmode="numeric" min="2" step="1" value="2"></label>
       </div>
-      <div class="res-in">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#c361e0"/><path d="M7 12h10" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
-        <div style="min-width:0;flex:1"><label for="r-Elixir">Elixir</label><input id="r-Elixir" type="text" inputmode="numeric" autocomplete="off" value=""></div>
-      </div>
-      <div class="res-in">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 7h7l-5.5 4.5L19 21l-7-4.5L5 21l2.5-7.5L2 9h7z" fill="#2b3340"/></svg>
-        <div style="min-width:0;flex:1"><label for="r-Dark Elixir">Dark Elixir</label><input id="r-Dark Elixir" type="text" inputmode="numeric" autocomplete="off" value=""></div>
-      </div>
-      <div class="res-in">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#3ac5c9"/><circle cx="9" cy="9" r="2" fill="#fff" opacity=".7"/></svg>
-        <div style="min-width:0;flex:1"><label for="r-Gems">Gems</label><input id="r-Gems" type="number" inputmode="numeric" min="0" step="100" value="0"></div>
-      </div>
-    </div>
-    <div class="res-in" style="background:var(--bg)">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l9 6v3H3V8z" fill="#7f8c99"/><path d="M5 11h14v9H5z" fill="#95a3b0"/><path d="M10 14h4v6h-4z" fill="#5d6b78"/></svg>
-      <div style="min-width:0;flex:1"><label for="th">Your Town Hall</label>
-        <select id="th" style="width:100%;border:0;background:transparent;font-weight:600;padding:0"></select></div>
+      <div class="calc-out" id="calc-out" role="status" aria-live="polite"></div>
     </div>
     <div class="tabs" role="group" aria-label="Demo speed" id="speed">
       <button type="button" data-w="1" aria-pressed="true">Real time</button>
@@ -251,16 +248,8 @@ P("Angry Jelly",rng(150,230,10),[72,96,120,144,168,192,192,192,192]);
 P("Sneezy",rng(200,360,20),rep(9,192));
 P("Greedy Raven",rng(260,420,20),rep(9,192));
 
-/* Town Hall gates that are actually in the game:
-   - guardians (Smasher / Longshot / Logger) arrive with Town Hall 18
-   - pets need the Pet House, which unlocks at TH14, and the newer pets need a higher TH
-   Everything else is not checked: Hero Hall / Pet House levels and hero levels are up to you. */
-// pets unlock with the Pet House: TH14 for the first four, then 15, 16, 17 - 18
-const PET_TH = { "L.A.S.S.I":15,"Electro Owl":15,"Mighty Yak":15,"Unicorn":15,
-  "Frosty":15,"Diggy":16,"Poison Lizard":16,"Phoenix":16,"Spirit Fox":17,"Angry Jelly":17,"Sneezy":18,"Greedy Raven":18 };
-const GUARD_TH = { "Smasher":18, "Longshot":18, "Logger":18 };
-const PET_UNLOCK_TH = { "L.A.S.S.I":14,"Electro Owl":14,"Mighty Yak":14,"Unicorn":14,
-  "Frosty":15,"Diggy":15,"Poison Lizard":15,"Phoenix":15,"Spirit Fox":16,"Angry Jelly":16,"Sneezy":17,"Greedy Raven":18 };
+/* No Town Hall / Hero Hall / Pet House level checks any more: you set the level you own,
+   the planner works out the rest. */
 
 /* --------------------------------------------------------------- helpers */
 const $ = id => document.getElementById(id);
@@ -279,14 +268,13 @@ const fmtDur = ms => {
 const fmtClock = ts => new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) +
   " " + new Date(ts).toLocaleDateString([], { month: "short", day: "numeric" });
 const clean = x => String(x).replace(/\D/g, "").slice(0, 3);
-const fmtInput = n => n ? Number(n).toLocaleString("en-US") : "";
 const num = v => Number(String(v).replace(/[^\d]/g, "")) || 0;
 
 /* ----------------------------------------------------------------- state */
 let S = {};
 try { S = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { S = {} }
 if (typeof S !== "object" || S === null) S = {};
-S.p = S.p || {}; S.jobs = S.jobs || {}; S.res = S.res || {}; S.log = S.log || [];
+S.p = S.p || {}; S.jobs = S.jobs || {}; S.log = S.log || [];
 let jam = S.jam !== false;
 let busy = S.busy || 5;              // builders available to heroes + guardians
 let alerts = S.alerts !== false;
@@ -299,17 +287,6 @@ const stepCost = n => { const c = curLv(n); return c >= maxLv(n) ? 0 : D[n].c[c 
 const stepTime = n => { const c = curLv(n); return c >= maxLv(n) ? 0 : D[n].t[c - 1]; };
 const withJam = (h) => jam ? Math.max(1, h * OFF) : h;
 const costNow = n => stepCost(n) * (jam ? OFF : 1);
-
-function thNeeded(n) {
-  const c = curLv(n), d = D[n];
-  if (c >= maxLv(n)) return 0;
-  if (GUARD_TH[n]) return GUARD_TH[n];
-  return 0;                                    // heroes + pets: not TH gated per level
-}
-function petGateOk(n) {
-  if (D[n].g !== "Pets") return true;
-  return (S.th || 18) >= (PET_UNLOCK_TH[n] || 15);
-}
 
 /* ------------------------------------------------------------ simulation */
 /* A "job" = one upgrade that has been started: {n, from, to, start, end, cost, res} */
@@ -356,13 +333,6 @@ function running() {
 }
 function buildersUsed() { return running().filter(j => D[j.n].g !== "Pets").length; }
 
-/* do I have the resource for it? */
-function shortfall(n) {
-  const have = num(S.res[D[n].r]);
-  const need = costNow(n);
-  return Math.max(0, need - have);
-}
-
 /* ------------------------------------------------------------- rendering */
 function iconTag(n) {
   return '<span class="ic"><img src="assets/icons/' + slug(n) + '.png" alt="" width="46" height="46" loading="lazy" decoding="async"></span>';
@@ -393,10 +363,9 @@ function render() {
   $('jt').textContent = jam ? '50% off' : 'off';
   $('alertrow').setAttribute('aria-checked', alerts);
   $('at').textContent = alerts ? (('Notification' in window) ? (Notification.permission === 'granted' ? 'on' : 'allow') : 'in-app') : 'off';
-  if (S.th) $('th').value = S.th;
-  ["Gold", "Elixir", "Dark Elixir", "Gems"].forEach(r => { const el = $('r-' + r); if (el && document.activeElement !== el) el.value = fmtInput(num(S.res[r])); });
   document.querySelectorAll('#speed button').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.w) === warp)));
   document.querySelectorAll('.tabs:not(#speed) button').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.b) === busy)));
+  renderCalc();
   updateJamInfo();
   tick();
 }
@@ -422,11 +391,8 @@ function paintCards() {
     const c = costNow(n), h = withJam(stepTime(n));
     let html = '<span class="lvl">Level ' + cur + ' → ' + (cur + 1) + '</span><b>' + fmtN(c) + ' ' + d.r + '</b>'
       + '<span class="tm">' + fmtT(h) + '</span>';
-    const need = thNeeded(n);
-    if (need && Number(S.th) < need) html += '<span class="short">Needs Town Hall ' + need + ' (you set ' + (S.th || 18) + ')</span>';
-    if (!petGateOk(n)) html += '<span class="short">Unlocks with Pet House at TH' + (PET_UNLOCK_TH[n]) + '</span>';
-    const lack = shortfall(n);
-    if (lack > 0) html += '<span class="short">' + fmtN(lack) + ' more ' + d.r + ' needed</span>';
+    const j2 = S.jobs[n];
+    if (j2) html += '<span class="lvl">Now upgrading ' + j2.from + ' → ' + j2.to + ' · ' + (j2.res) + ' already paid</span>';
     el.innerHTML = html;
     if (j && Date.now() >= j.start && Date.now() < j.end) {
       const p = Math.round(jobDelta(j) * 100);
@@ -450,7 +416,6 @@ function paintQueue() {
       const lv = live ? j.from : curLv(n);
       const ms = live ? j.end - Date.now() : it.ms;
       const done = live ? jobDelta(j) : 0;
-      const lack = shortfall(n);
       let sub;
       if (live) sub = Math.round(done * 100) + '% · ' + fmtDur(ms) + ' left';
       else if (it.start < 1000) sub = 'starts now · takes ' + fmtT(ms / 3600e3);
@@ -460,8 +425,7 @@ function paintQueue() {
         + '<div class="txt"><b>' + n + '</b><small>Lv ' + lv + '→' + (lv + 1) + ' · ' + sub + '</small>'
         + (live ? '<div class="bar"><i style="width:' + Math.round(done * 100) + '%"></i></div>' : '')
         + '</div>'
-        + '<div class="cost">' + (live ? '<b>paid</b>' : '<b>' + fmtN(costNow(n)) + '</b>' + D[n].r)
-        + (lack > 0 ? '<span class="lack">−' + fmtN(lack) + '</span>' : '') + '</div>'
+        + '<div class="cost">' + (live ? '<b>paid</b>' : '<b>' + fmtN(costNow(n)) + '</b>' + D[n].r) + '</div>'
         + '<button class="go" type="button" data-start="' + n + '" title="Start now" aria-label="Start ' + n + '">'
         + (live ? '⏸' : '▸') + '</button></div>';
     }
@@ -478,24 +442,19 @@ function paintQueue() {
     h = '<p class="empty">Tick a hero, guardian or pet on the left and enter the level you own. Press ▸ to actually start it.</p>';
   $('items').innerHTML = h;
 
-  /* totals: money still to spend (paid upgrades excluded) and the honest finish date */
+  /* totals for everything ticked */
   const T = {};
   let seq = 0;
-  for (const it of plan().build.concat(plan().pets)) {
-    const n = it.n;
-    seq += remainMs(n) / 3600e3;
-    if (!isLive(n)) T[D[n].r] = (T[D[n].r] || 0) + costNow(n);
-  }
   const pl = plan();
+  for (const it of pl.build.concat(pl.pets)) {
+    seq += remainMs(it.n) / 3600e3;
+    if (!isLive(it.n)) T[D[it.n].r] = (T[D[it.n].r] || 0) + costNow(it.n);
+  }
   let t = '';
-  const order = ['Gold', 'Elixir', 'Dark Elixir'];
   if (seq) {
-    order.forEach(r => {
+    ['Gold', 'Elixir', 'Dark Elixir'].forEach(r => {
       if (!T[r]) return;
-      const lack = Math.max(0, T[r] - num(S.res[r]));
-      t += '<div class="k"><span>Needed ' + r + '</span><strong' + (lack ? ' class="lack"' : '') + '>' + fmtN(T[r]) + '</strong></div>';
-      t += '<div class="fin"><span>You have ' + fmtN(num(S.res[r])) + '</span><span>'
-        + (lack ? 'need ' + fmtN(lack) + ' more' : 'covered ✓') + '</span></div>';
+      t += '<div class="k"><span>' + r + ' to spend</span><strong>' + fmtN(T[r]) + '</strong></div>';
     });
     if (!Object.keys(T).length) t += '<div class="fin"><span>Everything already paid for</span><span>✓</span></div>';
     t += '<hr><div class="k"><span>Time, one after another</span><strong>' + fmtT(seq) + '</strong></div>';
@@ -584,17 +543,11 @@ function beep() {
 function startJob(n) {
   const mx = maxLv(n), cur = curLv(n);
   if (cur >= mx) { toast(n + ' is already maxed'); return; }
-  if (thNeeded(n) > Number(S.th || 18)) { toast(n + ' needs Town Hall ' + thNeeded(n) + ' first'); return; }
-  if (!petGateOk(n)) { toast(n + ' needs the Pet House (TH' + PET_UNLOCK_TH[n] + ')'); return; }
-  const lack = shortfall(n);
-  if (lack > 0) { toast('Not enough ' + D[n].r + ' — ' + fmtN(lack) + ' short'); return; }
   if (jobOf(n) && Date.now() < jobOf(n).end) { toast(n + ' is already upgrading'); return; }
   const isPet = D[n].g === 'Pets';
   if (!isPet && busy !== 0 && buildersUsed() >= busy) { toast('All ' + busy + ' builders are busy'); return; }
   if (isPet && running().some(j => D[j.n].g === 'Pets')) { toast('The Pet House is already upgrading another pet'); return; }
-  // pay
   const cost = costNow(n);
-  S.res[D[n].r] = num(S.res[D[n].r]) - cost;
   const j = { start: Date.now(), end: Date.now() + withJam(stepTime(n)) * 3600e3, from: cur, to: cur + 1, cost, res: D[n].r };
   S.jobs[n] = j;
   S.log.unshift({ n, ...j }); S.log = S.log.slice(0, 40);
@@ -602,10 +555,7 @@ function startJob(n) {
   if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
 }
 function cancelJob(n) {
-  const j = S.jobs[n]; if (!j) return;
-  if (Date.now() < j.end) { // refund the resource like the game would not - it's a planner
-    S.res[j.res] = num(S.res[j.res]) + j.cost;
-  }
+  if (!S.jobs[n]) return;
   delete S.jobs[n]; sv(); render(); toast('Stopped ' + n);
 }
 
@@ -647,28 +597,75 @@ document.querySelectorAll('#speed button').forEach(b => b.addEventListener('clic
   warp = Number(b.dataset.w); sv(); render();
   toast(warp === 1 ? 'Timers back to real time' : 'Demo fast-forward ×' + warp + ' — only the timers you started');
 }));
-["Gold", "Elixir", "Dark Elixir", "Gems"].forEach(r => {
-  const el = $('r-' + r);
-  el.addEventListener('input', () => {
-    S.res[r] = num(el.value);
-    const pos = el.selectionStart;
-    el.value = fmtInput(S.res[r]);
-    try { el.setSelectionRange(pos, pos); } catch (e) {}
-    sv(); paintCards(); paintQueue();
+/* ---- level calculator -------------------------------------------------- */
+function calcWho() { return $('calc-who').value || names[0]; }
+function renderCalcWho() {
+  const sel = $('calc-who');
+  if (sel.options.length) return;
+  ['Heroes', 'Guardians', 'Pets'].forEach(g => {
+    const grp = document.createElement('optgroup'); grp.label = g;
+    names.filter(n => D[n].g === g).forEach(n => {
+      const o = document.createElement('option'); o.value = n; o.textContent = n; grp.appendChild(o);
+    });
+    sel.appendChild(grp);
   });
-  el.addEventListener('click', () => {});
-});
-for (let i = 1; i <= 18; i++) {
-  const o = document.createElement('option'); o.value = i; o.textContent = 'Town Hall ' + i;
-  $('th').appendChild(o);
+  sel.value = names[0];
 }
-$('th').addEventListener('change', () => {
-  S.th = Math.max(1, Math.min(18, Number($('th').value) || 18));
-  sv(); paintCards(); paintQueue();
+/* total of every upgrade step from `from` to `to` */
+function rangeTotal(n, from, to) {
+  const d = D[n], mx = maxLv(n);
+  from = Math.min(Math.max(1, from || 1), mx);
+  to = Math.min(Math.max(from + 1, to || from + 1), mx);
+  let cost = 0, hours = 0, steps = [];
+  for (let lv = from; lv < to; lv++) {
+    const c = d.c[lv - 1], h = d.t[lv - 1];
+    cost += c * (jam ? OFF : 1);
+    hours += withJam(h);
+    steps.push({ lv, c: c * (jam ? OFF : 1), h: withJam(h), res: d.r });
+  }
+  return { from, to, cost, hours, steps, res: d.r, capped: to === mx && from === mx };
+}
+function renderCalc() {
+  const sel = $('calc-who'); if (!sel) return;
+  renderCalcWho();
+  const n = calcWho(), mx = maxLv(n), d = D[n];
+  const f = $('calc-from'), t = $('calc-to');
+  f.max = mx - 1; t.max = mx;
+  let from = Number(f.value) || 1, to = Number(t.value) || from + 1;
+  from = Math.min(Math.max(1, from), mx - 1);
+  to = Math.min(Math.max(from + 1, to), mx);
+  if (document.activeElement !== f) f.value = from;
+  if (document.activeElement !== t) t.value = to;
+  const r = rangeTotal(n, from, to);
+  let h = '<div class="row"><span>' + n + '</span><span>' + d.r + '</span></div>'
+    + '<div class="row big"><span>Level ' + r.from + ' → ' + r.to + '</span><b>' + fmtN(r.cost) + '</b></div>'
+    + '<div class="row"><span>' + (r.to - r.from) + ' upgrade' + ((r.to - r.from) === 1 ? '' : 's') + ', ' + fmtT(r.hours) + '</span>'
+    + '<span>' + (jam ? 'Hammer Jam applied' : 'base values') + '</span></div>';
+  if (r.from >= mx) h = '<div class="bad">' + n + ' is already at max level ' + mx + '.</div>';
+  // per step breakdown: only the biggest / smallest to keep it short
+  if (r.steps.length > 1) {
+    const cheap = r.steps[0], dear = r.steps[r.steps.length - 1];
+    h += '<div class="row"><span>First step (' + cheap.lv + '→' + (cheap.lv + 1) + ')</span><b>' + fmtN(cheap.c) + '</b></div>'
+      + '<div class="row"><span>Last step (' + dear.lv + '→' + (dear.lv + 1) + ')</span><b>' + fmtN(dear.c) + '</b></div>';
+  }
+  $('calc-out').innerHTML = h;
+}
+['calc-who', 'calc-from', 'calc-to'].forEach(id => {
+  const el = $(id);
+  el.addEventListener('input', () => { renderCalc(); });
+  el.addEventListener('change', () => { renderCalc(); });
 });
+/* picking a character jumps the calculator to the level you already own */
+$('calc-who').addEventListener('change', () => {
+  const n = calcWho(), lv = curLv(n);
+  $('calc-from').value = Math.min(lv, maxLv(n) - 1);
+  $('calc-to').value = Math.min(lv + 1, maxLv(n));
+  renderCalc();
+});
+
 $('rs').addEventListener('click', () => {
-  if (!confirm('Reset levels, resources and running timers?')) return;
-  S = { p: {}, jobs: {}, res: {}, log: [] }; jam = true; busy = 5; alerts = true;
+  if (!confirm('Reset levels and running timers?')) return;
+  S = { p: {}, jobs: {}, log: [] }; jam = true; busy = 5; alerts = true;
   try { localStorage.removeItem(KEY) } catch (e) {}
   render();
 });
@@ -685,7 +682,6 @@ window.addEventListener('pointerdown', () => {
 }, { once: false });
 
 /* boot */
-S.th = S.th || 18;
 render();
 savePicker();          // turn the rendered defaults into state (first visit: BK + AQ)
 paintCards(); paintQueue();
