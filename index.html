@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>CoC heroes, guardians &amp; pets — upgrade &amp; build-timer planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap">
+<style>
+:root{
+--bg:#e8edf2;--panel:#fff;--ink:#14202b;--mute:#566878;--line:#cfd9e2;
+--accent:#b45f00;--accent-bg:#fff0d8;
+--hero:#9a5a00;--hero-bg:#fcebc6;--guard:#245aa0;--guard-bg:#dbe7f7;--pet:#2a7149;--pet-bg:#d8efe1;
+--bad:#a4262c;--ok:#1d6b45;--warn:#a35b00;
+--font-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+--font-body:Barlow,system-ui,-apple-system,"Segoe UI",sans-serif;
+color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+--bg:#0f161d;--panel:#18222c;--ink:#e8eef4;--mute:#98a9b9;--line:#2b3947;
+--accent:#f2ad45;--accent-bg:#352810;
+--hero:#f2ad45;--hero-bg:#3a2b10;--guard:#7fb2ee;--guard-bg:#172d49;--pet:#6fd3a0;--pet-bg:#133524;
+--bad:#ff8a8f;--ok:#6fd3a0;--warn:#f2ad45;color-scheme:dark}}
+:root[data-theme="dark"]{
+--bg:#0f161d;--panel:#18222c;--ink:#e8eef4;--mute:#98a9b9;--line:#2b3947;
+--accent:#f2ad45;--accent-bg:#352810;
+--hero:#f2ad45;--hero-bg:#3a2b10;--guard:#7fb2ee;--guard-bg:#172d49;--pet:#6fd3a0;--pet-bg:#133524;
+--bad:#ff8a8f;--ok:#6fd3a0;--warn:#f2ad45;color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.45 var(--font-body);
+padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button,input,select{font:inherit;color:inherit}
+select{border:0;background:transparent;width:100%;padding:0;font-weight:600;-webkit-appearance:none;appearance:none}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.app{height:100%;display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:18px}
+
+/* ---------- picker ---------- */
+.pick{min-width:0;overflow-y:auto;padding:18px 6px 40px 0;scrollbar-gutter:stable}
+.head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+h1{font:700 1.9rem/1.05 var(--font-display);letter-spacing:.01em;margin:0 0 4px;text-wrap:balance}
+.sub{margin:0;color:var(--mute);max-width:62ch}
+#rs{flex:none;padding:7px 12px;font-size:.85rem;font-weight:600;color:var(--mute);background:transparent;border:1px solid var(--line);border-radius:6px;cursor:pointer}
+h2{font:700 1.15rem/1 var(--font-display);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:22px 0 10px;display:flex;align-items:center;gap:10px}
+h2 .cnt{font:600 .75rem/1 var(--font-body);letter-spacing:0;text-transform:none;color:var(--mute);background:var(--bg);border:1px solid var(--line);border-radius:99px;padding:3px 8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:10px}
+.card{--cat:var(--hero);--cat-bg:var(--hero-bg);min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px;display:flex;flex-direction:column;gap:9px;position:relative}
+.card[data-c="Guardians"]{--cat:var(--guard);--cat-bg:var(--guard-bg)}
+.card[data-c="Pets"]{--cat:var(--pet);--cat-bg:var(--pet-bg)}
+.card:not(.off){border-color:var(--cat)}
+.card.busy{box-shadow:0 0 0 2px var(--cat) inset}
+.top{display:flex;align-items:center;gap:10px;cursor:pointer;min-width:0}
+.top input{width:20px;height:20px;margin:0;flex:none;accent-color:var(--cat)}
+.ic{flex:none;width:46px;height:46px;border-radius:11px;background:var(--cat-bg);display:grid;place-items:center;overflow:hidden;padding:3px}
+.ic img{width:100%;height:100%;object-fit:contain;display:block}
+.nm{min-width:0;font-weight:600;line-height:1.2}
+.nm small{display:block;color:var(--mute);font-weight:400;font-size:.8rem}
+.lv label{display:block;font-size:.78rem;font-weight:600;color:var(--mute);margin-bottom:3px}
+.step{display:flex}
+.step button{flex:none;width:40px;border:1px solid var(--line);background:var(--bg);font-size:1.2rem;font-weight:600;cursor:pointer}
+.step button:first-child{border-radius:6px 0 0 6px}.step button:last-child{border-radius:0 6px 6px 0}
+.step input{min-width:0;width:100%;text-align:center;font-size:1.05rem;font-weight:600;padding:7px 4px;background:var(--panel);border:1px solid var(--line);border-left:0;border-right:0;border-radius:0;-moz-appearance:textfield;appearance:textfield}
+.step input::-webkit-outer-spin-button,.step input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.res{display:flex;flex-wrap:wrap;gap:2px 10px;justify-content:space-between;align-items:baseline;font-size:.86rem;min-height:2.6em}
+.res .lvl{color:var(--mute);font-weight:600;width:100%}
+.res b{font-weight:600}
+.res .tm{color:var(--mute);font-variant-numeric:tabular-nums}
+.res.bad{color:var(--bad);font-weight:600}.res.done{color:var(--ok);font-weight:600}
+.res .short{color:var(--bad);font-weight:600;width:100%}
+.card.off .lv,.card.off .res{opacity:.4}
+/* per-card live state (started / ends / progress) */
+.live{display:none;flex-direction:column;gap:5px}
+.card.busy .live{display:flex}
+.live .bar{height:7px;border-radius:99px;background:var(--cat-bg);overflow:hidden}
+.live .bar i{display:block;height:100%;background:var(--cat);border-radius:99px;transition:width .4s linear}
+.live .row{display:flex;justify-content:space-between;gap:8px;font-size:.8rem;color:var(--mute);font-variant-numeric:tabular-nums}
+.live .row b{color:var(--ink);font-weight:600}
+.note{color:var(--mute);font-size:.8rem;max-width:92ch;margin:24px 0 0}
+
+/* ---------- side ---------- */
+.side{min-width:0;min-height:0;margin:14px 0;background:var(--panel);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;overflow:hidden}
+.sh{padding:11px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:7px}
+.sw-line{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;font-weight:600;font-size:.92rem;background:var(--bg);border:1px solid var(--line);border-radius:8px;cursor:pointer;text-align:left}
+.sw-line .sw{width:38px;height:22px;border-radius:11px;background:var(--line);position:relative;flex:none;transition:background .15s}
+.sw-line .sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--panel);transition:transform .15s}
+.sw-line[aria-checked="true"]{background:var(--accent-bg);border-color:var(--accent)}
+.sw-line[aria-checked="true"] .sw{background:var(--accent)}
+.sw-line[aria-checked="true"] .sw::after{transform:translateX(16px)}
+.sw-line small{font-weight:400;color:var(--mute);margin-left:auto;text-align:right;font-size:.78rem}
+.mini{font-size:.78rem;color:var(--mute);margin:0 2px}
+/* resources */
+.ress{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.res-in{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-width:0}
+.res-in svg{width:20px;height:20px;flex:none}
+.res-in label{display:block;font-size:.68rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mute)}
+.res-in input{width:100%;min-width:0;border:0;background:transparent;font-weight:600;font-variant-numeric:tabular-nums;padding:0;-moz-appearance:textfield;appearance:textfield}
+.res-in input::-webkit-outer-spin-button,.res-in input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.tabs{display:flex;gap:6px}
+.tabs button{flex:1;padding:6px 8px;font-size:.8rem;font-weight:600;background:var(--bg);border:1px solid var(--line);border-radius:7px;cursor:pointer;color:var(--mute)}
+.tabs button[aria-pressed="true"]{background:var(--accent-bg);border-color:var(--accent);color:var(--ink)}
+/* queue */
+.items{flex:1;min-height:0;overflow-y:auto;padding:4px 12px 8px}
+.grp{margin:10px 0 4px;font:700 .78rem/1 var(--font-body);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);display:flex;justify-content:space-between;gap:8px}
+.grp:first-child{margin-top:6px}
+.item{display:flex;align-items:center;gap:9px;padding:8px 0;border-top:1px solid var(--line)}
+.item:first-of-type{border-top:0}
+.item .thumb{width:30px;height:30px;border-radius:8px;background:var(--bg);flex:none;display:grid;place-items:center;padding:2px}
+.item .thumb img{width:100%;height:100%;object-fit:contain}
+.item .txt{min-width:0;flex:1}
+.item .txt b{display:block;font-size:.86rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .txt small{display:block;color:var(--mute);font-size:.75rem;font-variant-numeric:tabular-nums}
+.item .txt .bar{height:5px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:4px}
+.item .txt .bar i{display:block;height:100%;background:var(--ok);border-radius:99px}
+.item .cost{text-align:right;font-size:.8rem;font-variant-numeric:tabular-nums;color:var(--mute);flex:none}
+.item .cost b{display:block;color:var(--ink);font-weight:600}
+.item .cost .lack{color:var(--bad);font-weight:700}
+.item.idle{opacity:.75}
+.item .go{flex:none;width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--bg);cursor:pointer;font-size:.95rem;line-height:1;display:grid;place-items:center}
+.item .go:hover{border-color:var(--accent)}
+.empty{color:var(--mute);font-size:.86rem;padding:10px 0}
+/* totals */
+.tot{border-top:2px solid var(--line);padding:10px 12px 12px;background:var(--panel)}
+.tot .k{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:2px 0}
+.tot .k span{color:var(--mute);font-size:.84rem}
+.tot .k strong{font:700 1.3rem/1.1 var(--font-display);letter-spacing:.01em;font-variant-numeric:tabular-nums;text-align:right}
+.tot .k strong.lack{color:var(--bad)}
+.tot hr{border:0;border-top:1px solid var(--line);margin:7px 0}
+.tot .e{color:var(--mute);font-size:.82rem}
+.tot .fin{display:flex;justify-content:space-between;font-size:.82rem;color:var(--mute);padding:1px 0}
+.tot .fin b{color:var(--ink);font-variant-numeric:tabular-nums}
+.toast{position:fixed;left:50%;transform:translate(-50%,140%);bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:40;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:.9rem;box-shadow:0 10px 30px #0006;transition:transform .35s cubic-bezier(.2,.8,.2,1);max-width:min(92vw,460px)}
+.toast.on{transform:translate(-50%,0)}
+
+@media (max-width:900px){
+ .app{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;gap:8px}
+ .pick{padding-right:0}
+ .side{margin:0 0 10px;max-height:64vh}
+ .sh{padding:10px;gap:6px}
+ .sh .mini{display:none}
+ .items{max-height:32vh}
+ .tot{padding:8px 10px 10px}
+ .tot .k strong{font-size:1.15rem}
+ h1{font-size:1.5rem}
+ .head{flex-wrap:wrap}
+ .grid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="app">
+<main class="pick" id="pick">
+  <div class="head">
+    <div>
+      <h1>Heroes, guardians &amp; pets — plan, start, count down</h1>
+      <p class="sub">Tick what you want to upgrade, set the level you have and your Town Hall, then press <b>Start</b> (▸) on an item. The app runs the real build timers in the background, keeps counting after you close the tab, and warns you 5 minutes before anything finishes.</p>
+    </div>
+    <button id="rs" type="button">Reset</button>
+  </div>
+  <section><h2>Heroes <span class="cnt" id="c-Heroes"></span></h2><div class="grid" id="g-Heroes"></div></section>
+  <section><h2>Guardians <span class="cnt" id="c-Guardians"></span></h2><div class="grid" id="g-Guardians"></div></section>
+  <section><h2>Pets <span class="cnt" id="c-Pets"></span></h2><div class="grid" id="g-Pets"></div></section>
+  <p class="note">
+    Real game art is used for the icons (all rights belong to Supercell). Costs and times are the base values: no Gold Pass,
+    Books, Hammers or potions, and Hero Hall / Pet House levels aren’t checked. Heroes and guardians share the same builder
+    count (set it on the right); pets upgrade in the Pet House, one at a time, without a builder, and the queue starts from
+    now (it isn’t retroactive). Hammer Jam runs Nov&nbsp;1 08:00 → Nov&nbsp;16 08:00 UTC 2026 and upgrades <em>started</em>
+    during it keep the shorter time; the 50% also applies to guardians and pets. Guardians (Smasher, Longshot, Logger) share
+    one cost/time table. Diggy is listed to level 10 only. Data: cocwarbase.com (heroes), Clash of Clans Wiki, cocmap.com and
+    coclayout.com (guardians and pets), checked Nov 7, 2026.
+  </p>
+</main>
+
+<aside class="side" aria-label="Build queue and totals">
+  <div class="sh">
+    <button class="sw-line" id="jam" type="button" role="switch" aria-checked="true">
+      <span class="sw"></span><span>Hammer Jam</span><small id="jt">50% off</small>
+    </button>
+    <p class="mini" id="jinfo"></p>
+    <div class="sw-line" id="alertrow" role="switch" aria-checked="true" tabindex="0" style="cursor:pointer">
+      <span class="sw"></span><span>5-minute warning</span><small id="at">Notifications</small>
+    </div>
+
+    <div class="ress">
+      <div class="res-in">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#d33"/><path d="M7 12h10" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+        <div style="min-width:0;flex:1"><label for="r-Gold">Gold</label><input id="r-Gold" type="text" inputmode="numeric" autocomplete="off" value=""></div>
+      </div>
+      <div class="res-in">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#c361e0"/><path d="M7 12h10" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+        <div style="min-width:0;flex:1"><label for="r-Elixir">Elixir</label><input id="r-Elixir" type="text" inputmode="numeric" autocomplete="off" value=""></div>
+      </div>
+      <div class="res-in">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 7h7l-5.5 4.5L19 21l-7-4.5L5 21l2.5-7.5L2 9h7z" fill="#2b3340"/></svg>
+        <div style="min-width:0;flex:1"><label for="r-Dark Elixir">Dark Elixir</label><input id="r-Dark Elixir" type="text" inputmode="numeric" autocomplete="off" value=""></div>
+      </div>
+      <div class="res-in">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#3ac5c9"/><circle cx="9" cy="9" r="2" fill="#fff" opacity=".7"/></svg>
+        <div style="min-width:0;flex:1"><label for="r-Gems">Gems</label><input id="r-Gems" type="number" inputmode="numeric" min="0" step="100" value="0"></div>
+      </div>
+    </div>
+    <div class="res-in" style="background:var(--bg)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l9 6v3H3V8z" fill="#7f8c99"/><path d="M5 11h14v9H5z" fill="#95a3b0"/><path d="M10 14h4v6h-4z" fill="#5d6b78"/></svg>
+      <div style="min-width:0;flex:1"><label for="th">Your Town Hall</label>
+        <select id="th" style="width:100%;border:0;background:transparent;font-weight:600;padding:0"></select></div>
+    </div>
+    <div class="tabs" role="group" aria-label="Demo speed" id="speed">
+      <button type="button" data-w="1" aria-pressed="true">Real time</button>
+      <button type="button" data-w="60" aria-pressed="false">×60</button>
+      <button type="button" data-w="3600" aria-pressed="false">×3600</button>
+    </div>
+    <p class="mini" id="alertnote">Keep this page open (a background tab is fine) for the 5-minute warning. ×60 / ×3600 only fast-forward timers you started, and pause on the 5-minute mark.</p>
+    <div class="tabs" role="group" aria-label="Builders">
+      <button type="button" data-b="5" aria-pressed="true">5 builders</button>
+      <button type="button" data-b="6" aria-pressed="false">6 builders</button>
+      <button type="button" data-b="0" aria-pressed="false">Instant</button>
+    </div>
+  </div>
+  <div class="items" id="items"></div>
+  <div class="tot" id="tot" role="status" aria-live="polite"></div>
+</aside>
+</div>
+
+<div class="toast" id="toast" aria-live="polite"></div>
+
+<script>
+/* ------------------------------------------------------------------ data */
+const D = {"Barbarian King":{"r":"Dark Elixir","c":[5000,5500,6000,6500,7000,7500,8000,8500,10000,10500,11000,11500,12000,12500,13000,13500,14000,14500,15000,17000,19000,21000,23000,25000,27000,29000,31000,33000,35000,37000,39000,41000,43000,45000,47000,49000,51000,53000,55000,58000,61000,64000,67000,70000,73000,76000,79000,82000,85000,86000,87000,88000,89000,90000,93000,96000,99000,102000,105000,107000,109000,111000,113000,115000,117000,119000,121000,123000,125000,130000,135000,140000,145000,150000,155000,160000,165000,170000,175000,180000,185000,195000,205000,215000,220000,230000,240000,250000,255000,280000,290000,300000,310000,320000,340000,350000,360000,370000,380000,400000,410000,420000,430000,450000,460000,470000,475000,485000,490000],"t":[2,4,8,10,12,14,16,18,20,22,24,24,24,24,24,24,24,24,24,24,24,24,24,24,48,48,48,48,48,54,54,54,54,54,60,60,60,60,60,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,96,96,96,96,96,96,96,96,96,96,96,96,96,96,96,96,96,96,96,96,120,120,120,120,120,144,144,144,144,144,168,168,168,168,168,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192]},
+"Archer Queen":{"r":"Dark Elixir","c":[5000,5500,6000,6500,7000,7500,8000,8500,10000,10500,11000,11500,12000,12500,13000,13500,14000,14500,15000,17000,19000,21000,23000,25000,27000,29000,31000,33000,35000,37000,39000,41000,43000,45000,47000,49000,51000,53000,55000,58000,61000,64000,67000,70000,73000,76000,79000,82000,85000,86000,87000,88000,89000,90000,93000,96000,99000,102000,105000,107000,109000,111000,113000,115000,117000,119000,121000,123000,125000,130000,135000,140000,145000,150000,155000,160000,165000,170000,175000,180000,185000,190000,195000,200000,215000,225000,235000,245000,255000,280000,290000,300000,310000,320000,340000,350000,360000,370000,380000,400000,410000,420000,430000,450000,460000,470000,475000,485000,490000],"t":[2,4,8,10,12,14,16,18,20,22,24,24,24,24,24,24,24,24,24,24,24,24,24,24,48,48,48,48,48,54,54,54,54,54,60,60,60,60,60,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,96,96,96,96,96,96,96,96,96,96,96,96,96,96,96,96,96,96,96,96,120,120,120,120,120,144,144,144,144,144,168,168,168,168,168,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192]},
+"Minion Prince":{"r":"Dark Elixir","c":[5000,5500,6000,6500,7000,7500,8000,8500,10000,10500,11000,11500,12000,12500,13000,13500,14000,14500,15000,17000,19000,21000,23000,25000,27000,29000,31000,33000,35000,36000,37000,38000,39000,40000,41000,42000,43000,44000,45000,50000,55000,60000,65000,70000,75000,80000,85000,90000,95000,100000,105000,110000,115000,120000,125000,130000,135000,140000,145000,150000,155000,160000,165000,170000,175000,180000,185000,190000,195000,200000,205000,210000,220000,230000,240000,250000,260000,270000,280000,290000,300000,310000,320000,330000,340000,350000,360000,370000,380000,400000,410000,420000,430000,450000],"t":[2,4,8,10,12,14,16,18,20,22,24,24,24,24,24,24,24,24,24,24,24,24,24,24,36,36,36,36,36,48,48,48,48,48,48,48,48,48,48,54,54,54,54,54,72,72,72,72,72,96,96,96,96,96,96,96,96,96,96,120,120,120,120,120,144,144,144,144,144,168,168,168,168,168,180,180,180,180,180,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192]},
+"Grand Warden":{"r":"Elixir","c":[1000000,1100000,1200000,1400000,1500000,1700000,1800000,2000000,2300000,2700000,3000000,3400000,3700000,4100000,4400000,4800000,5100000,5500000,6000000,6100000,6200000,6300000,6400000,6500000,6600000,6700000,6800000,6900000,7000000,7100000,7200000,7300000,7400000,7500000,7600000,7700000,7800000,7900000,8000000,8300000,8600000,8900000,9200000,9500000,9800000,10100000,10400000,10700000,11000000,11400000,11800000,12200000,12600000,13000000,13400000,13800000,14200000,14600000,15000000,15500000,16000000,16500000,17000000,17500000,18000000,18500000,19000000,19500000,20000000,20500000,21000000,21500000,22000000,22500000,23500000,24500000,25500000,26500000,27500000,28500000,29000000,29500000,30000000,30500000],"t":[2,4,8,10,12,14,16,18,20,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,36,36,36,36,36,48,48,48,48,48,48,48,48,48,48,72,72,72,72,72,72,72,72,72,72,96,96,96,96,96,96,96,96,96,96,144,144,144,144,144,168,168,168,168,180,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192]},
+"Royal Champion":{"r":"Dark Elixir","c":[10000,15000,20000,25000,30000,35000,40000,45000,50000,53000,56000,59000,62000,65000,70000,75000,80000,85000,90000,95000,100000,105000,110000,115000,120000,125000,130000,135000,140000,145000,150000,155000,160000,165000,170000,175000,180000,200000,220000,240000,260000,280000,300000,320000,340000,350000,360000,370000,380000,400000,410000,420000,430000,450000],"t":[4,10,12,20,24,24,24,24,24,24,24,24,24,24,36,36,36,36,36,48,48,48,48,48,72,72,72,72,72,96,96,96,96,96,120,120,120,120,120,120,144,156,168,180,192,192,192,192,192,192,192,192,192,192]},
+"Dragon Duke":{"r":"Dark Elixir","c":[50000,60000,70000,80000,90000,100000,110000,120000,130000,150000,175000,200000,225000,250000,275000,300000,325000,350000,375000,400000,420000,440000,460000,480000],"t":[6,12,24,24,48,48,48,72,72,96,120,120,144,144,168,168,192,192,192,192,192,192,192,192]}};
+const k = a => a.map(x => x * 1000), rng = (a, b, s) => { const r = []; for (let x = a; x <= b; x += s) r.push(x); return r };
+const T14=[24,36,48,60,72,84,96,108,120,132,144,156,168,180], T15=[36,48,72,96,108,120,132,144,156,168,192,192,192,192], T10=[36,48,72,96,108,120,132,144,156];
+const rep=(n,x)=>Array(n).fill(x);
+Object.keys(D).forEach(n=>D[n].g="Heroes");
+["Smasher","Longshot","Logger"].forEach(n=>D[n]={r:"Elixir",g:"Guardians",c:[18e6,22e6,26e6,28e6],t:[168,216,264,312]});
+const P=(n,c,t)=>{D[n]={r:"Dark Elixir",g:"Pets",c:k(c),t}};
+P("L.A.S.S.I",rng(20,150,10),T14);
+P("Electro Owl",rng(30,225,15),T15);
+P("Mighty Yak",rng(40,170,10),T14);
+P("Unicorn",[50,65,80,95,110,125,140,155,170,200,230,260,290,320],T15);
+P("Frosty",[70,85,100,115,130,145,160,170,180,200,230,260,290,320],T15);
+P("Diggy",[90,105,120,130,140,150,160,170,180],T10);
+P("Poison Lizard",[60,75,90,100,110,120,130,140,150,180,200,220,240,260],[24,36,48,60,72,84,96,108,120,144,168,192,192,192]);
+P("Phoenix",[80,95,110,125,140,155,170,180,190],T10);
+P("Spirit Fox",rng(150,230,10),[72,96,120,132,144,156,168,180,192]);
+P("Angry Jelly",rng(150,230,10),[72,96,120,144,168,192,192,192,192]);
+P("Sneezy",rng(200,360,20),rep(9,192));
+P("Greedy Raven",rng(260,420,20),rep(9,192));
+
+/* Town Hall gates that are actually in the game:
+   - guardians (Smasher / Longshot / Logger) arrive with Town Hall 18
+   - pets need the Pet House, which unlocks at TH14, and the newer pets need a higher TH
+   Everything else is not checked: Hero Hall / Pet House levels and hero levels are up to you. */
+// pets unlock with the Pet House: TH14 for the first four, then 15, 16, 17 - 18
+const PET_TH = { "L.A.S.S.I":15,"Electro Owl":15,"Mighty Yak":15,"Unicorn":15,
+  "Frosty":15,"Diggy":16,"Poison Lizard":16,"Phoenix":16,"Spirit Fox":17,"Angry Jelly":17,"Sneezy":18,"Greedy Raven":18 };
+const GUARD_TH = { "Smasher":18, "Longshot":18, "Logger":18 };
+const PET_UNLOCK_TH = { "L.A.S.S.I":14,"Electro Owl":14,"Mighty Yak":14,"Unicorn":14,
+  "Frosty":15,"Diggy":15,"Poison Lizard":15,"Phoenix":15,"Spirit Fox":16,"Angry Jelly":16,"Sneezy":17,"Greedy Raven":18 };
+
+/* --------------------------------------------------------------- helpers */
+const $ = id => document.getElementById(id);
+const OFF = 0.5, KEY = "coc-upgrade-calc-v4", END = Date.UTC(2026, 10, 16, 8), WARN = 5 * 60e3;
+const names = Object.keys(D);
+const slug = n => n.replace(/\./g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+const maxLv = n => D[n].c.length + 1;
+const fmtN = n => Math.round(n).toLocaleString("en-US");
+const fmtT = h => { h = Math.max(0, h); const d = Math.floor(h / 24), r = Math.round(h % 24); return d ? d + "d " + r + "h" : r + "h"; };
+const fmtDur = ms => {
+  if (ms <= 0) return "done";
+  const s = Math.floor(ms / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600),
+        m = Math.floor(s % 3600 / 60);
+  return (d ? d + "d " : "") + h + "h " + String(m).padStart(2, "0") + "m";
+};
+const fmtClock = ts => new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) +
+  " " + new Date(ts).toLocaleDateString([], { month: "short", day: "numeric" });
+const clean = x => String(x).replace(/\D/g, "").slice(0, 3);
+const fmtInput = n => n ? Number(n).toLocaleString("en-US") : "";
+const num = v => Number(String(v).replace(/[^\d]/g, "")) || 0;
+
+/* ----------------------------------------------------------------- state */
+let S = {};
+try { S = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { S = {} }
+if (typeof S !== "object" || S === null) S = {};
+S.p = S.p || {}; S.jobs = S.jobs || {}; S.res = S.res || {}; S.log = S.log || [];
+let jam = S.jam !== false;
+let busy = S.busy || 5;              // builders available to heroes + guardians
+let alerts = S.alerts !== false;
+let warp = Number(S.warp) || 1;      // demo fast-forward for running timers
+const sv = () => { S.jam = jam; S.busy = busy; S.alerts = alerts; S.warp = warp; try { localStorage.setItem(KEY, JSON.stringify(S)) } catch (e) {} };
+const def = { "Barbarian King": 100, "Archer Queen": 100, "Minion Prince": 90, "Grand Warden": 75, "Royal Champion": 50, "Dragon Duke": 20 };
+const curLv = n => { const a = S.p[n]; return a && a[1] !== undefined && a[1] !== "" ? Number(a[1]) : (def[n] || 1) };
+
+const stepCost = n => { const c = curLv(n); return c >= maxLv(n) ? 0 : D[n].c[c - 1]; };
+const stepTime = n => { const c = curLv(n); return c >= maxLv(n) ? 0 : D[n].t[c - 1]; };
+const withJam = (h) => jam ? Math.max(1, h * OFF) : h;
+const costNow = n => stepCost(n) * (jam ? OFF : 1);
+
+function thNeeded(n) {
+  const c = curLv(n), d = D[n];
+  if (c >= maxLv(n)) return 0;
+  if (GUARD_TH[n]) return GUARD_TH[n];
+  return 0;                                    // heroes + pets: not TH gated per level
+}
+function petGateOk(n) {
+  if (D[n].g !== "Pets") return true;
+  return (S.th || 18) >= (PET_UNLOCK_TH[n] || 15);
+}
+
+/* ------------------------------------------------------------ simulation */
+/* A "job" = one upgrade that has been started: {n, from, to, start, end, cost, res} */
+function jobOf(n) { return S.jobs[n] || null; }
+function jobDone(j) { return Date.now() >= j.end; }
+function jobDelta(j) { return Math.min(1, (Date.now() - j.start) / (j.end - j.start)); }
+
+const remainMs = n => {
+  const j = S.jobs[n];
+  if (j && Date.now() < j.end) return Math.max(0, j.end - Date.now());
+  return withJam(stepTime(n)) * 3600e3;
+};
+const isLive = n => { const j = S.jobs[n]; return !!(j && Date.now() >= j.start && Date.now() < j.end); };
+
+/* Split heroes+guardians into as many parallel builders as allowed; pets chain one by one. */
+function plan() {
+  const picks = names.filter(n => S.p[n] && S.p[n][0] && curLv(n) < maxLv(n));
+  const build = picks.filter(n => D[n].g !== "Pets").map(n => ({ n, ms: remainMs(n), cost: costNow(n) }));
+  const pets = picks.filter(n => D[n].g === "Pets").map(n => ({ n, ms: remainMs(n), cost: costNow(n) }));
+  build.sort((a, b) => b.ms - a.ms);
+  const lanes = Math.max(1, busy === 0 ? build.length : busy);
+  const L = Array.from({ length: lanes }, () => ({ start: 0, end: 0, items: [] }));
+  for (const it of build) {
+    let lane = L[0];
+    for (const l of L) if (l.end < lane.end) lane = l;
+    it.start = lane.end; it.end = lane.end + it.ms; it.lane = L.indexOf(lane);
+    lane.end = it.end; lane.items.push(it);
+  }
+  const petQ = [];
+  let t = 0;
+  for (const it of pets) { it.start = t; it.end = t + it.ms; petQ.push(it); t = it.end; }
+  return { build, pets: petQ, makespan: Math.max(L.reduce((m, l) => Math.max(m, l.end), 0), t) };
+}
+
+/* live jobs: what is actually running right now */
+function running() {
+  const out = [];
+  for (const n of names) {
+    const j = S.jobs[n];
+    if (!j) continue;
+    if (Date.now() >= j.start) out.push({ ...j, n });
+  }
+  return out;
+}
+function buildersUsed() { return running().filter(j => D[j.n].g !== "Pets").length; }
+
+/* do I have the resource for it? */
+function shortfall(n) {
+  const have = num(S.res[D[n].r]);
+  const need = costNow(n);
+  return Math.max(0, need - have);
+}
+
+/* ------------------------------------------------------------- rendering */
+function iconTag(n) {
+  return '<span class="ic"><img src="assets/icons/' + slug(n) + '.png" alt="" width="46" height="46" loading="lazy" decoding="async"></span>';
+}
+function render() {
+  const out = { Heroes: "", Guardians: "", Pets: "" };
+  names.forEach((n, i) => {
+    const d = D[n], mx = maxLv(n), s = S.p[n];
+    const on = Array.isArray(s) ? s[0] === true : i < 2;
+    const lv = Array.isArray(s) && s[1] !== "" ? s[1] : (def[n] || 1);
+    out[d.g] += '<div class="card' + (on ? '' : ' off') + '" id="w' + i + '" data-c="' + d.g + '" data-n="' + n + '">'
+      + '<label class="top"><input type="checkbox" id="p' + i + '"' + (on ? ' checked' : '') + '>'
+      + iconTag(n) + '<span class="nm">' + n + '<small>' + d.r + ' · max ' + mx + '</small></span></label>'
+      + '<div class="lv"><label for="a' + i + '">Level you have now</label><div class="step">'
+      + '<button type="button" data-i="' + i + '" data-s="-1" aria-label="Lower ' + n + ' level">&minus;</button>'
+      + '<input id="a' + i + '" type="number" inputmode="numeric" min="1" max="' + mx + '" step="1" value="' + lv + '">'
+      + '<button type="button" data-i="' + i + '" data-s="1" aria-label="Raise ' + n + ' level">+</button></div></div>'
+      + '<div class="res" id="r' + i + '"></div>'
+      + '<div class="live" id="l' + i + '"><div class="bar"><i style="width:0%"></i></div>'
+      + '<div class="row"><span id="ls' + i + '"></span><b id="le' + i + '"></b></div></div>'
+      + '</div>';
+  });
+  for (const g in out) {
+    $('g-' + g).innerHTML = out[g];
+    $('c-' + g).textContent = names.filter(n => D[n].g === g).length;
+  }
+  $('jam').setAttribute('aria-checked', jam);
+  $('jt').textContent = jam ? '50% off' : 'off';
+  $('alertrow').setAttribute('aria-checked', alerts);
+  $('at').textContent = alerts ? (('Notification' in window) ? (Notification.permission === 'granted' ? 'on' : 'allow') : 'in-app') : 'off';
+  if (S.th) $('th').value = S.th;
+  ["Gold", "Elixir", "Dark Elixir", "Gems"].forEach(r => { const el = $('r-' + r); if (el && document.activeElement !== el) el.value = fmtInput(num(S.res[r])); });
+  document.querySelectorAll('#speed button').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.w) === warp)));
+  document.querySelectorAll('.tabs:not(#speed) button').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.b) === busy)));
+  updateJamInfo();
+  tick();
+}
+function updateJamInfo() {
+  const left = END - Date.now();
+  $('jinfo').textContent = left > 0
+    ? 'Event ends in ' + Math.floor(left / 864e5) + 'd ' + Math.floor(left % 864e5 / 36e5) + 'h (Nov 16, 08:00 UTC). Upgrades started now keep the discount.'
+    : 'Hammer Jam ended Nov 16, 08:00 UTC. Switch it off for normal cost and time.';
+}
+
+/* per-card result line */
+function paintCards() {
+  names.forEach((n, i) => {
+    const d = D[n], mx = maxLv(n), on = $('p' + i).checked, el = $('r' + i), card = $('w' + i);
+    const j = S.jobs[n];
+    card.classList.toggle('off', !on);
+    card.classList.toggle('busy', !!(j && Date.now() >= j.start && Date.now() < j.end));
+    el.className = 'res'; el.innerHTML = '';
+    if (!on) return;
+    const cur = Number($('a' + i).value);
+    if (!Number.isInteger(cur) || cur < 1 || cur > mx) { el.className = 'res bad'; el.textContent = 'Enter a level from 1 to ' + mx + '.'; return; }
+    if (cur === mx) { el.className = 'res done'; el.textContent = 'Max level reached'; return; }
+    const c = costNow(n), h = withJam(stepTime(n));
+    let html = '<span class="lvl">Level ' + cur + ' → ' + (cur + 1) + '</span><b>' + fmtN(c) + ' ' + d.r + '</b>'
+      + '<span class="tm">' + fmtT(h) + '</span>';
+    const need = thNeeded(n);
+    if (need && Number(S.th) < need) html += '<span class="short">Needs Town Hall ' + need + ' (you set ' + (S.th || 18) + ')</span>';
+    if (!petGateOk(n)) html += '<span class="short">Unlocks with Pet House at TH' + (PET_UNLOCK_TH[n]) + '</span>';
+    const lack = shortfall(n);
+    if (lack > 0) html += '<span class="short">' + fmtN(lack) + ' more ' + d.r + ' needed</span>';
+    el.innerHTML = html;
+    if (j && Date.now() >= j.start && Date.now() < j.end) {
+      const p = Math.round(jobDelta(j) * 100);
+      $('l' + i).querySelector('i').style.width = p + '%';
+      $('ls' + i).textContent = 'Lv ' + j.from + '→' + j.to + ' · ' + p + '%';
+      $('le' + i).textContent = 'ends ' + fmtClock(j.end);
+    }
+  });
+}
+
+/* queue + totals (pure simulation of the current picks) */
+function paintQueue() {
+  const p = plan(), rows = [];
+  const jr = running();
+  const group = (title, list, kind) => {
+    if (!list.length) return '';
+    let h = '<div class="grp"><span>' + title + '</span><span>' + (kind === 'builders' ? buildersUsed() + '/' + (busy || '∞') + ' builders' : '1 at a time') + '</span></div>';
+    for (const it of list) {
+      const n = it.n, j = S.jobs[n];
+      const live = j && Date.now() >= j.start && Date.now() < j.end;
+      const lv = live ? j.from : curLv(n);
+      const ms = live ? j.end - Date.now() : it.ms;
+      const done = live ? jobDelta(j) : 0;
+      const lack = shortfall(n);
+      let sub;
+      if (live) sub = Math.round(done * 100) + '% · ' + fmtDur(ms) + ' left';
+      else if (it.start < 1000) sub = 'starts now · takes ' + fmtT(ms / 3600e3);
+      else sub = 'starts in ' + fmtDur(it.start) + ' · takes ' + fmtT(ms / 3600e3);
+      h += '<div class="item' + (live ? '' : ' idle') + '">'
+        + '<span class="thumb"><img src="assets/icons/' + slug(n) + '.png" alt=""></span>'
+        + '<div class="txt"><b>' + n + '</b><small>Lv ' + lv + '→' + (lv + 1) + ' · ' + sub + '</small>'
+        + (live ? '<div class="bar"><i style="width:' + Math.round(done * 100) + '%"></i></div>' : '')
+        + '</div>'
+        + '<div class="cost">' + (live ? '<b>paid</b>' : '<b>' + fmtN(costNow(n)) + '</b>' + D[n].r)
+        + (lack > 0 ? '<span class="lack">−' + fmtN(lack) + '</span>' : '') + '</div>'
+        + '<button class="go" type="button" data-start="' + n + '" title="Start now" aria-label="Start ' + n + '">'
+        + (live ? '⏸' : '▸') + '</button></div>';
+    }
+    return h;
+  };
+  let h = '';
+  h += group('Heroes &amp; guardians', p.build, 'builders');
+  h += group('Pets (Pet House)', p.pets, 'house');
+  const others = names.filter(n => S.p[n] && S.p[n][0] && curLv(n) >= maxLv(n));
+  if (others.length) h += '<div class="grp"><span>Already maxed</span></div>' +
+    others.map(n => '<div class="item idle"><span class="thumb"><img src="assets/icons/' + slug(n) + '.png" alt=""></span>'
+      + '<div class="txt"><b>' + n + '</b><small>Level ' + maxLv(n) + ' — nothing left to buy</small></div></div>').join('');
+  if (!p.build.length && !p.pets.length && !others.length)
+    h = '<p class="empty">Tick a hero, guardian or pet on the left and enter the level you own. Press ▸ to actually start it.</p>';
+  $('items').innerHTML = h;
+
+  /* totals: money still to spend (paid upgrades excluded) and the honest finish date */
+  const T = {};
+  let seq = 0;
+  for (const it of plan().build.concat(plan().pets)) {
+    const n = it.n;
+    seq += remainMs(n) / 3600e3;
+    if (!isLive(n)) T[D[n].r] = (T[D[n].r] || 0) + costNow(n);
+  }
+  const pl = plan();
+  let t = '';
+  const order = ['Gold', 'Elixir', 'Dark Elixir'];
+  if (seq) {
+    order.forEach(r => {
+      if (!T[r]) return;
+      const lack = Math.max(0, T[r] - num(S.res[r]));
+      t += '<div class="k"><span>Needed ' + r + '</span><strong' + (lack ? ' class="lack"' : '') + '>' + fmtN(T[r]) + '</strong></div>';
+      t += '<div class="fin"><span>You have ' + fmtN(num(S.res[r])) + '</span><span>'
+        + (lack ? 'need ' + fmtN(lack) + ' more' : 'covered ✓') + '</span></div>';
+    });
+    if (!Object.keys(T).length) t += '<div class="fin"><span>Everything already paid for</span><span>✓</span></div>';
+    t += '<hr><div class="k"><span>Time, one after another</span><strong>' + fmtT(seq) + '</strong></div>';
+    t += '<div class="k"><span>All at once</span><strong>' + fmtT(pl.makespan / 3600e3) + '</strong></div>';
+    t += '<div class="fin"><span>Everything ready</span><b>' + fmtClock(Date.now() + pl.makespan) + '</b></div>';
+  } else {
+    t = '<div class="e">Nothing ticked yet.</div>';
+  }
+  $('tot').innerHTML = t;
+}
+
+/* ------------------------------------------------------------------ clock */
+let lastWarn = {};
+/* Demo fast-forward: shrink the remaining time of the running timers.
+   When a jump would leap over the 5-minute mark we stop it exactly there, so the
+   warning is always visible for a moment before the upgrade completes. */
+function fastForward(now, dt) {
+  if (warp <= 1) return false;
+  let moved = false;
+  for (const n in S.jobs) {
+    const j = S.jobs[n];
+    const before = j.end - now;
+    const shift = dt * (warp - 1);
+    if (before > WARN && before - shift <= WARN) {   // would skip the warning window
+      j.end = now + WARN; j.hold = now + 1500;
+    } else j.end -= shift;
+    moved = true;
+  }
+  return moved;
+}
+let lastTick = Date.now();
+function tick() {
+  const now = Date.now(), dt = Math.min(5000, now - lastTick);
+  lastTick = now;
+  const moved = fastForward(now, dt);
+  paintCards(); paintQueue();
+  for (const n of names) {
+    const j = S.jobs[n];
+    if (!j) continue;
+    if (now >= j.end && !(j.hold && now < j.hold)) {
+      delete S.jobs[n];
+      S.p[n] = [true, String(Math.min(maxLv(n), j.to))];   // the hero is now at the new level
+      const inp = $('a' + names.indexOf(n));
+      if (inp) inp.value = S.p[n][1];
+      sv(); toast(n + ' upgraded to level ' + j.to + ' ✓'); continue;
+    }
+    if (alerts && j.end - now <= WARN && !lastWarn[n]) { lastWarn[n] = 1; notify(n, j); }
+  }
+  for (const n in lastWarn) if (!S.jobs[n]) delete lastWarn[n];
+  if (moved) sv();
+  updateJamInfo();
+}
+let clock = null;
+function startClock() { if (!clock) tick(); clearInterval(clock); clock = setInterval(tick, 1000); }
+
+/* --------------------------------------------------------------- alerts */
+function toast(msg) {
+  const el = $('toast'); el.textContent = msg; el.classList.add('on');
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 4200);
+}
+function notify(n, j) {
+  const body = n + ' hits level ' + j.to + ' in 5 minutes — finishes at ' + fmtClock(j.end) + '.';
+  toast(n + ' finishes in 5 min (level ' + j.to + ')');
+  if ('Notification' in window && Notification.permission === 'granted') {
+    try {
+      const t = new Notification('Clash upgrade almost done', { body, tag: 'coc-' + n, icon: 'assets/icons/' + slug(n) + '.png' });
+      t.onclick = () => window.focus();
+    } catch (e) {}
+  }
+  beep();
+}
+function beep() {
+  try {
+    const C = window.AudioContext || window.webkitAudioContext; if (!C) return;
+    const ctx = beep.ctx || (beep.ctx = new C());
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'sine'; o.frequency.value = 880; o.connect(g); g.connect(ctx.destination);
+    g.gain.setValueAtTime(0.0001, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.7);
+    o.start(); o.stop(ctx.currentTime + 0.75);
+  } catch (e) {}
+}
+
+/* ------------------------------------------------------------------ start */
+function startJob(n) {
+  const mx = maxLv(n), cur = curLv(n);
+  if (cur >= mx) { toast(n + ' is already maxed'); return; }
+  if (thNeeded(n) > Number(S.th || 18)) { toast(n + ' needs Town Hall ' + thNeeded(n) + ' first'); return; }
+  if (!petGateOk(n)) { toast(n + ' needs the Pet House (TH' + PET_UNLOCK_TH[n] + ')'); return; }
+  const lack = shortfall(n);
+  if (lack > 0) { toast('Not enough ' + D[n].r + ' — ' + fmtN(lack) + ' short'); return; }
+  if (jobOf(n) && Date.now() < jobOf(n).end) { toast(n + ' is already upgrading'); return; }
+  const isPet = D[n].g === 'Pets';
+  if (!isPet && busy !== 0 && buildersUsed() >= busy) { toast('All ' + busy + ' builders are busy'); return; }
+  if (isPet && running().some(j => D[j.n].g === 'Pets')) { toast('The Pet House is already upgrading another pet'); return; }
+  // pay
+  const cost = costNow(n);
+  S.res[D[n].r] = num(S.res[D[n].r]) - cost;
+  const j = { start: Date.now(), end: Date.now() + withJam(stepTime(n)) * 3600e3, from: cur, to: cur + 1, cost, res: D[n].r };
+  S.jobs[n] = j;
+  S.log.unshift({ n, ...j }); S.log = S.log.slice(0, 40);
+  sv(); render(); toast('Started ' + n + ' → level ' + j.to + ' · ready ' + fmtClock(j.end));
+  if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
+}
+function cancelJob(n) {
+  const j = S.jobs[n]; if (!j) return;
+  if (Date.now() < j.end) { // refund the resource like the game would not - it's a planner
+    S.res[j.res] = num(S.res[j.res]) + j.cost;
+  }
+  delete S.jobs[n]; sv(); render(); toast('Stopped ' + n);
+}
+
+/* ----------------------------------------------------------------- events */
+['g-Heroes', 'g-Guardians', 'g-Pets'].forEach(id => {
+  $(id).addEventListener('input', e => {
+    if (e.target.matches('input[type=checkbox]')) return;
+    savePicker(); paintCards(); paintQueue();
+  });
+  $(id).addEventListener('change', () => { savePicker(); paintCards(); paintQueue(); });
+  $(id).addEventListener('click', e => {
+    const b = e.target.closest('button[data-s]');
+    if (!b) return;
+    const i = +b.dataset.i, inp = $('a' + i), mx = maxLv(names[i]);
+    inp.value = Math.min(mx, Math.max(1, (Number(inp.value) || 1) + Number(b.dataset.s)));
+    savePicker(); paintCards(); paintQueue();
+  });
+});
+function savePicker() {
+  names.forEach((n, i) => { const c = $('p' + i), a = $('a' + i); if (c && a) S.p[n] = [c.checked, clean(a.value)]; });
+  sv();
+}
+$('items').addEventListener('click', e => {
+  const b = e.target.closest('button[data-start]');
+  if (!b) return;
+  const n = b.dataset.start;
+  if (S.jobs[n] && Date.now() < S.jobs[n].end) cancelJob(n); else startJob(n);
+});
+$('jam').addEventListener('click', () => { jam = !jam; sv(); render(); });
+$('alertrow').addEventListener('click', askAlerts);
+$('alertrow').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); askAlerts(); } });
+function askAlerts() {
+  alerts = !alerts; sv();
+  if (alerts && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission();
+  render();
+}
+document.querySelectorAll('.tabs:not(#speed) button').forEach(b => b.addEventListener('click', () => { busy = Number(b.dataset.b); sv(); render(); }));
+document.querySelectorAll('#speed button').forEach(b => b.addEventListener('click', () => {
+  warp = Number(b.dataset.w); sv(); render();
+  toast(warp === 1 ? 'Timers back to real time' : 'Demo fast-forward ×' + warp + ' — only the timers you started');
+}));
+["Gold", "Elixir", "Dark Elixir", "Gems"].forEach(r => {
+  const el = $('r-' + r);
+  el.addEventListener('input', () => {
+    S.res[r] = num(el.value);
+    const pos = el.selectionStart;
+    el.value = fmtInput(S.res[r]);
+    try { el.setSelectionRange(pos, pos); } catch (e) {}
+    sv(); paintCards(); paintQueue();
+  });
+  el.addEventListener('click', () => {});
+});
+for (let i = 1; i <= 18; i++) {
+  const o = document.createElement('option'); o.value = i; o.textContent = 'Town Hall ' + i;
+  $('th').appendChild(o);
+}
+$('th').addEventListener('change', () => {
+  S.th = Math.max(1, Math.min(18, Number($('th').value) || 18));
+  sv(); paintCards(); paintQueue();
+});
+$('rs').addEventListener('click', () => {
+  if (!confirm('Reset levels, resources and running timers?')) return;
+  S = { p: {}, jobs: {}, res: {}, log: [] }; jam = true; busy = 5; alerts = true;
+  try { localStorage.removeItem(KEY) } catch (e) {}
+  render();
+});
+
+/* keep timers honest when the tab wakes up or the app is closed */
+document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
+window.addEventListener('focus', tick);
+
+/* ask once for notification permission, after the first interaction */
+let asked = false;
+window.addEventListener('pointerdown', () => {
+  if (asked) return; asked = true;
+  if (alerts && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission();
+}, { once: false });
+
+/* boot */
+S.th = S.th || 18;
+render();
+savePicker();          // turn the rendered defaults into state (first visit: BK + AQ)
+paintCards(); paintQueue();
+startClock();
+</script>
+</body>
+</html>
